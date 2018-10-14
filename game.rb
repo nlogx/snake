@@ -2,15 +2,19 @@ require 'gosu'
 require_relative 'snake'
 require_relative 'food'
 
+# Main window for Snake game
 class Game < Gosu::Window
   def initialize
     super 800, 800 #, :fullscreen => true
-    self.caption = "Snake Game"
+    self.caption = 'Snake Game'
     # @bg = Gosu::Image.new("space.png")
     @font = Gosu::Font.new(15)
     @snake = Snake.new
     @food = Food.new
-    # @snake.warp(400, 400)
+  end
+
+  def button_down(id)
+    id == Gosu::KB_ESCAPE ? close : super
   end
 
   def update # called 60 times/sec by default
@@ -18,28 +22,25 @@ class Game < Gosu::Window
     @snake.turn('right') if Gosu.button_down?(Gosu::KB_RIGHT)
     @snake.turn('up') if Gosu.button_down?(Gosu::KB_UP)
     @snake.turn('down') if Gosu.button_down?(Gosu::KB_DOWN)
-    # @snake.accelerate if overlaps with food
+
+    if @snake.eats?(@food)
+      @food.new_pos
+      @snake.grow
+      @snake.accelerate
+    end
     @snake.move
+
   end
 
   def draw # usually called 60 times/sec, depends o
-    @font.draw("SCORE: #{@snake.ate}", 10, 10, 5, 1.0, 1.0, Gosu::Color::GRAY)
+    @font.draw_text("SCORE: #{@snake.ate}", 10, 10, 5, 1.0, 1.0, Gosu::Color::GRAY)
     @snake.draw
     @food.draw
+
     # @background_image.draw(0, 0, 0)
   end
 
-  def button_down(id)
-    id == Gosu::KB_ESCAPE ? close : super
-  end
 
-  def check
-    if (@food.x..@food.x + @SIZE).cover?(@snake.x || @snake.x + @SIZE) || \
-       (@food.y..@food.y + @SIZE).cover?(@snake.y || @snake.y + @SIZE)
-      @food.pop
-      @food.draw
-    end
-  end
 
   # def
 
