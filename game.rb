@@ -5,9 +5,8 @@ require_relative 'food'
 # Main window for Snake game
 class Game < Gosu::Window
   def initialize
-    super 800, 800 #, :fullscreen => true
+    super 800, 800
     self.caption = 'Snake Game'
-    # @bg = Gosu::Image.new("space.png")
     @font = Gosu::Font.new(15)
     @snake = Snake.new
     @food = Food.new
@@ -17,34 +16,26 @@ class Game < Gosu::Window
     id == Gosu::KB_ESCAPE ? close : super
   end
 
-  def update # called 60 times/sec by default
-    @snake.turn('left') if Gosu.button_down?(Gosu::KB_LEFT)
-    @snake.turn('right') if Gosu.button_down?(Gosu::KB_RIGHT)
-    @snake.turn('up') if Gosu.button_down?(Gosu::KB_UP)
-    @snake.turn('down') if Gosu.button_down?(Gosu::KB_DOWN)
+  def update
+    @snake.turn('left') if Gosu.button_down?(Gosu::KB_LEFT) && @snake.dir != 'right'
+    @snake.turn('right') if Gosu.button_down?(Gosu::KB_RIGHT) && @snake.dir != 'left'
+    @snake.turn('up') if Gosu.button_down?(Gosu::KB_UP) && @snake.dir != 'down'
+    @snake.turn('down') if Gosu.button_down?(Gosu::KB_DOWN) && @snake.dir != 'up'
 
     if @snake.eats?(@food)
-      @food.new_pos
+      @food.pop
       @snake.grow
       @snake.accelerate
     end
-    @snake.move
 
+    @snake.move
   end
 
-  def draw # usually called 60 times/sec, depends o
+  def draw
     @font.draw_text("SCORE: #{@snake.ate}", 10, 10, 5, 1.0, 1.0, Gosu::Color::GRAY)
     @snake.draw
     @food.draw
-
-    # @background_image.draw(0, 0, 0)
   end
-
-
-
-  # def
-
-  # end
 end
 
 Game.new.show # .show() does not return until .close()

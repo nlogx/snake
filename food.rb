@@ -2,15 +2,15 @@ require 'gosu'
 
 class Food
   attr_reader :x, :y
-  def initialize(color = Gosu::Color::YELLOW)
+  def initialize
     @SIZE = 20
     @POS = 800 / @SIZE
+    @color = Gosu::Color::YELLOW
     @eaten = 0
-    @color = color
-    new_pos
+    pop
   end
 
-  def new_pos
+  def pop
     @eaten += 1
     @x, @y = rand(@POS) * @SIZE, rand(@POS) * @SIZE
   end
