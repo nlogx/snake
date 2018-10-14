@@ -1,63 +1,67 @@
 require 'gosu'
+require_relative 'block'
 
 # Player class
 class Snake
   attr_reader :x, :y, :ate, :dir
 
-  def initialize(size = 20)
-    @SIZE = size
+  def initialize(screen = 800)
+    @SCREEN = screen
+    @SIZE = 20
     @color = Gosu::Color::WHITE
     @ate = 0
     @speed = 3
 
-    @vel_x = 3
-    @vel_y = 0
+    @vx = @vy = 0
     @dir = ''
-    @body = [{ x: 400, y: 400, dir: @dir }]
+    @body = [Block.new(@SCREEN / 2, @SCREEN / 2)]
   end
 
   def draw
-    @body.each { |pos| Gosu.draw_rect(pos[:x], pos[:y], @SIZE, @SIZE, @color, 10) }
+    @body.each { |block| Gosu.draw_rect(block.x, block.y, @SIZE, @SIZE, @color, 10) }
   end
 
   def grow
     @ate += 1
-    d = @body.last[:dir]
-    pos = { x: @body[-1][:x] + @SIZE, y: @body[-1][:y] } if d == 'left'
-    pos = { x: @body[-1][:x], y: @body[-1][:y] + @SIZE } if d == 'up'
-    pos = { x: @body[-1][:x] - @SIZE, y: @body[-1][:y] } if d == 'right'
-    pos = { x: @body[-1][:x], y: @body[-1][:y] - @SIZE } if d == 'down'
-    @body.push(pos)
+    d = @body.last.dir
+    x, y = @body[-1].x + @SIZE, @body[-1].y if d == 'left'
+    x, y = @body[-1].x, @body[-1].y + @SIZE if d == 'up'
+    x, y = @body[-1].x - @SIZE, @body[-1].y if d == 'right'
+    x, y = @body[-1].x, @body[-1].y - @SIZE if d == 'down'
+    @body.push(Block.new(x, y, d))
   end
 
   def turn(dir)
     @dir = dir unless @ate.zero?
 
-    @vel_x, @vel_y = -@speed, 0 if dir == 'left'
-    @vel_x, @vel_y = 0, -@speed if dir == 'up'
-    @vel_x, @vel_y = @speed, 0 if dir == 'right'
-    @vel_x, @vel_y = 0, @speed if dir == 'down'
+    @vx, @vy = -@speed, 0 if dir == 'left'
+    @vx, @vy = 0, -@speed if dir == 'up'
+    @vx, @vy = @speed, 0 if dir == 'right'
+    @vx, @vy = 0, @speed if dir == 'down'
   end
 
   def move
-    x = @body.first[:x] + @vel_x
-    y = @body.first[:y] + @vel_y
-    x %= 800
-    y %= 800
+    x = @x + @vx
+    y = @y + @vy
+    x %= @SCREEN
+    y %= @SCREEN
 
-    @body.unshift({ x: x, y: y })
+    @body.unshift(Block.new(x, y, @dir))
     @body.pop
   end
 
   def accelerate
     # OR += TO VEL COORD.
-    @speed += 0.1
+    @speed += 0.1 if (@ate % 5).zero?
   end
 
   def eats?(food)
-    x = @body.first[:x]
-    y = @body.first[:y]
-    ((x..(x + @SIZE)).cover?(food.x) || (x..(x + @SIZE)).cover?(food.x + @SIZE)) \
-    && ((y..(y + @SIZE)).cover?(food.y) || (y..(y + @SIZE)).cover?(food.y + @SIZE))
+    @x, @y = @body.first.x, @body.first.y
+    ((@x...(@x + @SIZE)).cover?(food.x) || (@x...(@x + @SIZE)).cover?(food.x + @SIZE)) \
+    && ((@y...(@y + @SIZE)).cover?(food.y) || (@y...(@y + @SIZE)).cover?(food.y + @SIZE))
+  end
+
+  def bites_self?
+    @body[1...-1].any? { |part| @body.last.x == part.x && @body.last.y == part.y }
   end
 end

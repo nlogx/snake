@@ -5,11 +5,15 @@ require_relative 'food'
 # Main window for Snake game
 class Game < Gosu::Window
   def initialize
-    super 800, 800
+    @SCREEN = 800
+    super(@SCREEN, @SCREEN)
     self.caption = 'Snake Game'
+
     @font = Gosu::Font.new(15)
     @snake = Snake.new
     @food = Food.new
+
+    @status = ["SCORE: #{@snake.ate}", true]
   end
 
   def button_down(id)
@@ -22,6 +26,8 @@ class Game < Gosu::Window
     @snake.turn('up') if Gosu.button_down?(Gosu::KB_UP) && @snake.dir != 'down'
     @snake.turn('down') if Gosu.button_down?(Gosu::KB_DOWN) && @snake.dir != 'up'
 
+    @status = ["OUCH! YOU BIT YOURSELF! Try again :)", false] if @snake.bites_self?
+
     if @snake.eats?(@food)
       @food.pop
       @snake.grow
@@ -32,10 +38,14 @@ class Game < Gosu::Window
   end
 
   def draw
-    @font.draw_text("SCORE: #{@snake.ate}", 10, 10, 5, 1.0, 1.0, Gosu::Color::GRAY)
-    @snake.draw
-    @food.draw
+    if @status[1]
+      @font.draw_text(@status[0], 10, 10, 5, 1.0, 1.0, Gosu::Color::GRAY)
+      @snake.draw
+      @food.draw
+    else
+      @font.draw_text(@status[0], @SCREEN / 3, @SCREEN / 3, 5, 1.0, 1.0, Gosu::Color::RED)
+    end
   end
 end
 
-Game.new.show # .show() does not return until .close()
+Game.new.show
